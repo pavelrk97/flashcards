@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>dxFeed Support — Flashcards</title>
+<style>
+:root{
+  --bg:#faf9f5;--surface:#ffffff;--text:#1c1b1a;--text2:#6b6a66;--text3:#9b9a96;--border:rgba(0,0,0,0.12);--accent:#1d9e75;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#1f1e1d;--surface:#2a2927;--text:#f1efea;--text2:#a8a6a0;--text3:#78766f;--border:rgba(255,255,255,0.14);}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding:16px 14px 40px}
+h1{font-size:18px;font-weight:600;margin:4px 0 2px}
+.sub{font-size:13px;color:var(--text2);margin:0 0 14px}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.chip{font-size:13px;padding:7px 12px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip.on{background:var(--surface);border-color:var(--text3);color:var(--text);font-weight:500}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.scene{perspective:1500px;height:300px;transition:height .35s ease;margin:6px 0 14px}
+.flip{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .45s ease;cursor:pointer}
+.flip.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;overflow:auto}
+.back{transform:rotateY(180deg)}
+.pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--text2)}
+.q{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:19px;font-weight:500;line-height:1.45}
+.a{font-size:15px;line-height:1.6}
+.a ul{margin:8px 0 0;padding-left:18px}
+.a li{margin:7px 0}
+.k{font-weight:600}
+.ru{color:var(--text3);font-size:13px;margin-top:8px}
+.hint{font-size:12px;color:var(--text3);text-align:center;margin-top:8px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.grp{display:flex;gap:8px}
+button.b{font-size:14px;padding:10px 14px;min-height:44px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+button.b:active{transform:scale(.97)}
+.count{font-size:13px;color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>dxFeed support — interview flashcards</h1>
+  <p class="sub">Tap a card to flip. Swipe or use the buttons to navigate.</p>
+  <div class="chips" id="chips"></div>
+
+  <div class="scene" id="scene">
+    <div class="flip" id="flip">
+      <div class="face" id="front">
+        <div class="pill" id="frontCat"></div>
+        <div class="q" id="frontQ"></div>
+        <div class="hint">tap to reveal answer</div>
+      </div>
+      <div class="face back">
+        <div class="pill" id="backCat" style="margin-bottom:10px"></div>
+        <div class="a" id="backA"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="grp">
+      <button class="b" id="prev" aria-label="Previous">&lsaquo;</button>
+      <button class="b" id="flipBtn">&#8635; flip</button>
+      <button class="b" id="next" aria-label="Next">&rsaquo;</button>
+    </div>
+    <div class="grp" style="align-items:center">
+      <span class="count" id="count"></span>
+      <button class="b" id="known"><span id="knownLbl">know it</span></button>
+      <button class="b" id="shuffle" aria-label="Shuffle">&#8646;</button>
+    </div>
+  </div>
+  <div class="hint" id="knownTotal" style="margin-top:12px"></div>
+</div>
+
+<script>
+var C={'Market data':'#1d9e75','API & HTTP':'#378add','Networking':'#7f77dd','SQL':'#ba7517','Support':'#d4537e','Linux':'#888780'};
+var DATA=[
+{c:'Market data',q:'What is market data, and what does a provider like dxFeed do?',a:'<ul><li>Market data = real-time and historical information about financial instruments: prices, trades, order book, candles.</li><li>dxFeed aggregates data from exchanges and delivers it to clients (brokers, trading platforms, apps) via <span class="k">APIs, SDKs and streaming feeds</span>.</li><li>Support job: help clients connect to feeds and debug data, connectivity and API issues.</li></ul>'},
+{c:'Market data',q:'Difference between a Quote and a Trade?',a:'<ul><li><span class="k">Quote</span> = best Bid (buy) and Ask (sell) prices + sizes available right now — an intention to trade.</li><li><span class="k">Trade</span> = a transaction that actually executed (real price and size).</li><li>Quote = what is offered; Trade = what happened.</li></ul><div class="ru">RU: котировка — доступные цены сейчас; сделка — реально исполненная.</div>'},
+{c:'Market data',q:'What are Bid, Ask and the Spread?',a:'<ul><li><span class="k">Bid</span> = highest price a buyer will pay.</li><li><span class="k">Ask / Offer</span> = lowest price a seller will accept.</li><li><span class="k">Spread</span> = Ask − Bid. Tighter spread = more liquid instrument.</li></ul>'},
+{c:'Market data',q:'What is an order book (Level 1 vs Level 2)?',a:'<ul><li>Order book = all current buy and sell orders at each price level, with sizes.</li><li><span class="k">Level 1</span> = best bid/ask only.</li><li><span class="k">Level 2</span> (market depth) = full list of price levels — shows supply, demand, liquidity.</li></ul>'},
+{c:'Market data',q:'What is a candle (OHLC)?',a:'<ul><li>Price aggregated over a time interval: <span class="k">Open, High, Low, Close</span> (+ Volume).</li><li>Building block of price charts; intervals like 1m, 1h, 1d.</li></ul>'},
+{c:'Market data',q:'Real-time vs delayed vs historical data?',a:'<ul><li><span class="k">Real-time</span> = live, as it happens (usually needs exchange licensing).</li><li><span class="k">Delayed</span> = lagged, e.g. 15 min — cheaper or free.</li><li><span class="k">Historical</span> = past data, for charts and backtesting.</li></ul>'},
+{c:'Market data',q:'What is a symbol, and what is a subscription?',a:'<ul><li><span class="k">Symbol / ticker</span> = unique ID of an instrument (e.g. AAPL = Apple).</li><li><span class="k">Subscription</span> = client tells the server which symbols/event types it wants; server pushes only those updates (publish/subscribe). Saves bandwidth.</li></ul>'},
+{c:'Market data',q:'What is latency, and why does it matter?',a:'<ul><li>Latency = delay between an event happening and the client receiving it.</li><li>In trading, low latency is critical — stale prices lead to bad decisions and losses. Measured in ms / µs.</li></ul>'},
+{c:'API & HTTP',q:'A client says the API returns 401 — what do you check?',a:'<ul><li><span class="k">401 = Unauthorized</span>: credentials missing, invalid or expired.</li><li>Check: API key/token present and correct, Authorization header format, token not expired, correct environment/endpoint, account permissions.</li></ul>'},
+{c:'API & HTTP',q:'401 vs 403 vs 404 vs 500?',a:'<ul><li><span class="k">401</span> = not authenticated (who are you?).</li><li><span class="k">403</span> = authenticated but no permission.</li><li><span class="k">404</span> = resource/URL not found.</li><li><span class="k">500</span> = server-side error (our side).</li></ul><div class="ru">Rule: 4xx = client problem, 5xx = server problem.</div>'},
+{c:'API & HTTP',q:'What does HTTP 429 mean?',a:'<ul><li><span class="k">429 = Too Many Requests</span> — rate limiting.</li><li>Client exceeded the allowed request rate. Fix: back off, retry later, reduce frequency, respect the <span class="k">Retry-After</span> header.</li></ul>'},
+{c:'API & HTTP',q:'How do you reproduce a reported API issue?',a:'<ul><li>Collect the exact request: endpoint, method, headers, params/body, timestamp, environment.</li><li>Get the actual response/error.</li><li>Reproduce with curl or Postman; check server logs around that time.</li></ul>'},
+{c:'API & HTTP',q:'REST vs WebSocket for market data?',a:'<ul><li><span class="k">REST</span> = request/response — good for snapshots and historical queries.</li><li><span class="k">WebSocket / streaming</span> = persistent connection, server pushes updates — better for live data.</li><li>dxFeed live feeds stream; they do not poll.</li></ul>'},
+{c:'API & HTTP',q:'API key vs JWT token?',a:'<ul><li><span class="k">API key</span> = static secret that identifies the client; simple.</li><li><span class="k">JWT</span> = signed token carrying claims (identity, expiry); server validates the signature without a DB lookup, and it expires.</li></ul>'},
+{c:'Networking',q:'What is a WebSocket?',a:'<ul><li>A persistent, full-duplex connection over a single TCP connection.</li><li>After an HTTP upgrade handshake, both sides can send messages anytime — ideal for real-time feeds.</li></ul>'},
+{c:'Networking',q:'TCP vs UDP?',a:'<ul><li><span class="k">TCP</span> = reliable, ordered, connection-based; retransmits lost packets. Most APIs.</li><li><span class="k">UDP</span> = fast, connectionless, no delivery/order guarantee; used for some low-latency market-data multicast.</li></ul>'},
+{c:'Networking',q:'Client says the connection keeps dropping — what do you check?',a:'<ul><li>Network, firewall, proxy; idle timeouts; missing heartbeats; token expiry on reconnect; server-side limits; client reconnect logic.</li><li>Check both client and server logs for the disconnect reason.</li></ul>'},
+{c:'Networking',q:'What is a heartbeat / keep-alive?',a:'<ul><li>Small periodic messages that confirm the connection is alive and prevent idle timeout.</li><li>Missing heartbeats = treat the connection as dead and reconnect.</li></ul>'},
+{c:'SQL',q:'INNER JOIN vs LEFT JOIN?',a:'<ul><li><span class="k">INNER JOIN</span> = only rows that match in both tables.</li><li><span class="k">LEFT JOIN</span> = all rows from the left table + matches from the right (NULLs where no match).</li></ul>'},
+{c:'SQL',q:'How do you find duplicate rows in SQL?',a:'<ul><li>GROUP BY the column(s), then HAVING COUNT(*) &gt; 1.</li><li>e.g. SELECT email, COUNT(*) FROM users GROUP BY email HAVING COUNT(*) &gt; 1;</li></ul>'},
+{c:'Support',q:'Walk me through how you handle a support ticket.',a:'<ul><li>Acknowledge, gather details (repro, logs, environment, timestamps), reproduce, diagnose root cause, resolve or escalate, communicate clearly, document.</li><li>Keep the client updated even when you do not have an answer yet.</li></ul>'},
+{c:'Support',q:'When and how do you escalate to L2 / engineering?',a:'<ul><li>Escalate when it is beyond your access/knowledge or is a confirmed bug.</li><li>Include: clear repro steps, logs, what you already tried, impact/severity. Summarize — do not dump raw data.</li></ul>'},
+{c:'Support',q:'How do you handle an angry or frustrated client?',a:'<ul><li>Stay calm, acknowledge and empathize, focus on the problem not the emotion.</li><li>Set realistic expectations, give regular updates, follow through. Never argue.</li></ul>'},
+{c:'Support',q:'How do you prioritize multiple open tickets?',a:'<ul><li>By severity/impact: production down &gt; degraded &gt; cosmetic.</li><li>Also: number of users affected, SLA deadlines, business criticality. Triage first, then work top-down.</li></ul>'},
+{c:'Support',q:'What makes a good bug report to engineering?',a:'<ul><li>Steps to reproduce, expected vs actual result, environment/version, logs/errors, timestamps, frequency, impact.</li><li>Enough that engineering can reproduce it without coming back to you.</li></ul>'},
+{c:'Linux',q:'How would you find errors in logs on a Linux server?',a:'<ul><li><span class="k">tail -f</span> to follow live; <span class="k">grep -i error</span> or grep by request-id/timestamp; <span class="k">less</span> to page; <span class="k">journalctl</span> for systemd services.</li><li>Start at the issue timestamp and read the first error and any "Caused by".</li></ul>'}
+];
+
+var cats=['All','Market data','API & HTTP','Networking','SQL','Support','Linux'];
+var filter='All',deck=[],pos=0,flipped=false,known={};
+var chips=document.getElementById('chips'),scene=document.getElementById('scene'),flip=document.getElementById('flip');
+var frontCat=document.getElementById('frontCat'),frontQ=document.getElementById('frontQ'),backCat=document.getElementById('backCat'),backA=document.getElementById('backA');
+var count=document.getElementById('count'),knownLbl=document.getElementById('knownLbl'),knownTotal=document.getElementById('knownTotal');
+
+cats.forEach(function(cat){
+  var b=document.createElement('button');b.className='chip'+(cat===filter?' on':'');
+  b.innerHTML=(cat==='All'?'':'<span class="dot" style="background:'+C[cat]+'"></span>')+cat;
+  b.onclick=function(){filter=cat;build();render();[].forEach.call(chips.children,function(ch,i){ch.className='chip'+(cats[i]===filter?' on':'');});};
+  chips.appendChild(b);
+});
+function build(){deck=DATA.map(function(d,i){return {id:i,c:d.c,q:d.q,a:d.a};}).filter(function(d){return filter==='All'||d.c===filter;});pos=0;}
+function pill(c){return '<span class="dot" style="background:'+C[c]+'"></span><span>'+c+'</span>';}
+function fit(){var f=flipped?flip.querySelector('.back'):document.getElementById('front');scene.style.height=Math.max(f.scrollHeight,300)+'px';}
+function render(){var card=deck[pos];flipped=false;flip.classList.remove('flipped');
+  frontCat.innerHTML=pill(card.c);frontQ.textContent=card.q;backCat.innerHTML=pill(card.c);backA.innerHTML=card.a;
+  count.textContent=(pos+1)+' / '+deck.length;
+  var k=!!known[card.id];knownLbl.textContent=k?'known':'know it';document.getElementById('known').style.color=k?'#1d9e75':'';
+  knownTotal.textContent='known '+Object.keys(known).length+' / '+DATA.length+'  ·  space = flip, arrows/swipe = navigate';fit();}
+function go(d){pos=(pos+d+deck.length)%deck.length;render();}
+function doFlip(){flipped=!flipped;flip.classList.toggle('flipped',flipped);fit();}
+flip.onclick=doFlip;
+document.getElementById('flipBtn').onclick=doFlip;
+document.getElementById('next').onclick=function(){go(1);};
+document.getElementById('prev').onclick=function(){go(-1);};
+document.getElementById('shuffle').onclick=function(){for(var i=deck.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=deck[i];deck[i]=deck[j];deck[j]=t;}pos=0;render();};
+document.getElementById('known').onclick=function(){var id=deck[pos].id;if(known[id])delete known[id];else known[id]=1;render();};
+document.addEventListener('keydown',function(e){if(e.key==='ArrowRight')go(1);else if(e.key==='ArrowLeft')go(-1);else if(e.key===' '||e.key==='Enter'){e.preventDefault();doFlip();}});
+var tx=0;scene.addEventListener('touchstart',function(e){tx=e.changedTouches[0].clientX;},{passive:true});
+scene.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50){go(dx<0?1:-1);}},{passive:true});
+build();render();window.addEventListener('resize',fit);
+</script>
+</body>
+</html>
